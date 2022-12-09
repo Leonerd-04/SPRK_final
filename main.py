@@ -14,12 +14,12 @@ class MainScene(Scene):
         # self.display_prob_func(2)
         #"The driver may be ... at some given distance"
 
-        self.wait(3)
+        # self.wait(3)
 
         #"We can visualize the collision with a position vs time graph"
-        self.pos_vs_time(3)
+        self.pos_vs_time(2)
 
-        self.wait(3)
+        self.wait(2.5)
 
 
     def make_title(self, duration: int):
@@ -71,13 +71,15 @@ class MainScene(Scene):
         reaction = 2
         car_acc = 0.5
 
-        def get_car_plot(axes: Axes, v: float) -> ParametricFunction:
-            def function_interp(v: float) -> Callable[float, float]:
-                def func(t: float) -> float:
-                    return v * t - 0.5 * car_acc * (t - reaction) ** 2
-                return func
+        def get_car_plot(axes: Axes, v: float) -> VGroup:
 
-            return axes.plot(function=function_interp(v), x_range=[0, axes.x_range[1]], color=YELLOW, use_vectorized=True)
+            def linear_func(t: float, v: float) -> float:
+                return v * t
+
+            def quadr_func(t: float, v: float) -> float:
+                return v * t - 0.5 * car_acc * (t - reaction) ** 2
+
+            return axes.plot(lambda t: quadr_func(t, v) if t > reaction else linear_func(t, v), x_range=[0, reaction + v / car_acc + 0.1, 0.08], color=YELLOW)
 
         axes = Axes(
             x_range=[0, 7, 20],
@@ -88,25 +90,12 @@ class MainScene(Scene):
 
         self.play(
             Create(axes),
-            Create(car_plot)
+            Create(car_plot, lag_ratio=0)
         )
-        def update_car_plot(beginning: float, end: float) \
-            -> Callable[ParametricFunction, float]:
-            def update_plot(plot: ParametricFunction, alpha: float) -> ParametricFunction:
-                new_v = integer_interpolate(beginning, end, alpha)
-                new_plot = get_car_plot(axes, new_v[0] + new_v[1])
-                Transform(plot, new_plot).update_mobjects(1)
-                return new_plot
 
-            return update_plot
 
         self.wait(duration)
 
         self.play(
-            UpdateFromAlphaFunc(
-                car_plot,
-                update_function=lambda d, a: update_car_plot(1, 4)(d, a),
-                duration=2,
-                rate_func=smooth
-            )
+            Transform(car_plot, get_car_plot(axes, 0.8), rate_function=smooth, duration=0.7)
         )
