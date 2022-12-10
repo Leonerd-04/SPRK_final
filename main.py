@@ -1,3 +1,4 @@
+from colour import Color
 from manim import *
 import numpy as np
 
@@ -68,10 +69,15 @@ class MainScene(Scene):
         )
 
     def pos_vs_time(self, duration: int):
-        reaction = 2
-        car_acc = 0.5
+        reaction = 3
+        car_acc = 0.8
+        dist = 4
+        velocity = ValueTracker(0.8)
 
-        def get_car_plot(axes: Axes, v: float) -> VGroup:
+        ped_color = Color()
+        ped_color.set_hex("#D80D8E")
+
+        def get_car_plot(axes: Axes, v: float) -> ParametricFunction:
 
             def linear_func(t: float, v: float) -> float:
                 return v * t
@@ -79,23 +85,39 @@ class MainScene(Scene):
             def quadr_func(t: float, v: float) -> float:
                 return v * t - 0.5 * car_acc * (t - reaction) ** 2
 
+
             return axes.plot(lambda t: quadr_func(t, v) if t > reaction else linear_func(t, v), x_range=[0, reaction + v / car_acc + 0.1, 0.08], color=YELLOW)
+
+        def update_car_plot() -> Transform:
+            return Transform(car_plot, get_car_plot(axes, velocity.get_value()), rate_function=smooth, duration=0.7)
 
         axes = Axes(
             x_range=[0, 7, 20],
             y_range=[0, 5, 20]
         )
 
-        car_plot = get_car_plot(axes, 1)
+        labels = axes.get_axis_labels(x_label=Tex("$t$"), y_label=Tex("$x$"))
+
+        car_plot = get_car_plot(axes, 0.6)
+        car_plot.add_updater(lambda this: this.replace(get_car_plot(axes, velocity.get_value()), stretch=True))
+
+        pedestrian_plot = axes.plot(lambda t: dist, color=ped_color)
 
         self.play(
             Create(axes),
-            Create(car_plot, lag_ratio=0)
+            Create(car_plot),
+            Create(pedestrian_plot),
+            Write(labels)
         )
-
 
         self.wait(duration)
 
         self.play(
-            Transform(car_plot, get_car_plot(axes, 0.8), rate_function=smooth, duration=0.7)
+            velocity.animate.set_value(1.26),
+            duration=2
         )
+
+        car_plot.get_point_from_function(reaction)
+        axes.get_vertical_line(axes.input_to_graph_point(reaction, car_plot), color=TEAL)
+
+
