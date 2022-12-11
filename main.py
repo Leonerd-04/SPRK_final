@@ -73,10 +73,13 @@ class MainScene(Scene):
         car_acc = 0.8
         dist = 4
         velocity = ValueTracker(0.8)
+        self.add(velocity)
 
         ped_color = Color()
         ped_color.set_hex("#D80D8E")
 
+        # Plot consists of a constant velocity line and a constant acceleration parabola, determined by the parameters
+        # above.
         def get_car_plot(axes: Axes, v: float) -> ParametricFunction:
 
             def linear_func(t: float, v: float) -> float:
@@ -86,10 +89,13 @@ class MainScene(Scene):
                 return v * t - 0.5 * car_acc * (t - reaction) ** 2
 
 
-            return axes.plot(lambda t: quadr_func(t, v) if t > reaction else linear_func(t, v), x_range=[0, reaction + v / car_acc + 0.1, 0.08], color=YELLOW)
-
-        def update_car_plot() -> Transform:
-            return Transform(car_plot, get_car_plot(axes, velocity.get_value()), rate_function=smooth, duration=0.7)
+            return axes.plot(
+                lambda t:
+                quadr_func(t, v) if t >= reaction
+                else linear_func(t, v),
+                x_range=[0, reaction + v / car_acc + 0.1, 0.05],
+                color=YELLOW
+            )
 
         axes = Axes(
             x_range=[0, 7, 20],
@@ -98,8 +104,10 @@ class MainScene(Scene):
 
         labels = axes.get_axis_labels(x_label=Tex("$t$"), y_label=Tex("$x$"))
 
-        car_plot = get_car_plot(axes, 0.6)
-        car_plot.add_updater(lambda this: this.replace(get_car_plot(axes, velocity.get_value()), stretch=True))
+        car_plot = get_car_plot(axes, velocity.get_value())
+        car_plot.add_updater(
+            lambda this: this.set_points(get_car_plot(axes, velocity.get_value()).get_all_points())
+        )
 
         pedestrian_plot = axes.plot(lambda t: dist, color=ped_color)
 
@@ -112,12 +120,59 @@ class MainScene(Scene):
 
         self.wait(duration)
 
+        #"If these two curves intersect..."
         self.play(
             velocity.animate.set_value(1.26),
-            duration=2
+            duration=0.7
         )
 
-        car_plot.get_point_from_function(reaction)
-        axes.get_vertical_line(axes.input_to_graph_point(reaction, car_plot), color=TEAL)
+        self.wait(3)
 
+        #(No speech)
+        self.play(
+            velocity.animate.set_value(0.6),
+            duration=0.7
+        )
 
+        # Line to demonstrate where the acceleration starts
+        line = axes.get_vertical_line(axes.c2p(reaction, velocity.get_value() * reaction, 0), color=TEAL)
+        line.add_updater(
+            lambda this: this.replace(
+                axes.get_vertical_line(axes.c2p(reaction, velocity.get_value() * reaction, 0), color=TEAL),
+                stretch=True
+            )
+        )
+        self.add(line)
+
+        temp_line = Line(start=axes.coords_to_point(0, 0), end=axes.coords_to_point(reaction))
+
+        brace = Brace(temp_line)
+        brace_text = Tex("Reaction Time", font_size=24).next_to(brace, DOWN * 1/2)
+
+        self.add(brace, brace_text)
+
+        #"Because human brains... driver won't react"
+        self.play(
+            Create(line),
+            Write(brace),
+            Write(brace_text)
+        )
+
+        #"We can see now that changing..."
+        self.play(
+            velocity.animate.set_value(0.76),
+            rate_func=wiggle,
+            duration=1.5
+        )
+
+        self.play(
+            velocity.animate.set_value(0.5),
+            duration=0.8
+        )
+
+        self.wait()
+        #"Low enough cruising speeds"
+        self.play(
+            velocity.animate.set_value(1.1),
+            duration=8
+        )
