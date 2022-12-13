@@ -14,10 +14,20 @@ class MainScene(VoiceoverScene):
         self.set_speech_service(GTTSService(transcription_model="base"))
         self.play_pedestrian_graph_scene()
 
+
+    def make_title(self, text: str, duration: int):
+        title = Tex(text, font_size=64)
+
+        self.play(Write(title, run_time=0.8))
+        self.wait(duration)
+        self.play(Unwrite(title, run_time=0.8))
+
+
+
     def play_pedestrian_graph_scene(self):
 
         #(No speech)
-        self.make_pedestrian_title(2)
+        self.make_title(r"The Mathematics of Collisions", 2)
         #(No speech)
 
         with self.voiceover(
@@ -34,13 +44,6 @@ class MainScene(VoiceoverScene):
 
         self.wait(2.5)
 
-
-    def make_pedestrian_title(self, duration: int):
-        title = Tex(r"The Mathematics of Collisions", font_size=64)
-
-        self.play(Write(title, run_time=0.8))
-        self.wait(duration)
-        self.play(Unwrite(title, run_time=0.8))
 
     def display_prob_func(self):
         line_color = Color()
@@ -290,3 +293,6 @@ class MainScene(VoiceoverScene):
             Unwrite(brace),
             Unwrite(brace_text)
         )
+
+    def play_roadside_tree_scene(self):
+        pass
