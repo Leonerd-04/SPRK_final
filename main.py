@@ -6,11 +6,18 @@ import numpy as np
 
 
 class MainScene(VoiceoverScene):
+
+    def add_voiceover_ssml(self, ssml: str, **kwargs) -> None:
+        pass
+
     def construct(self):
         self.set_speech_service(GTTSService(transcription_model="base"))
+        self.play_pedestrian_graph_scene()
+
+    def play_pedestrian_graph_scene(self):
 
         #(No speech)
-        self.make_title(2)
+        self.make_pedestrian_title(2)
         #(No speech)
 
         with self.voiceover(
@@ -28,7 +35,7 @@ class MainScene(VoiceoverScene):
         self.wait(2.5)
 
 
-    def make_title(self, duration: int):
+    def make_pedestrian_title(self, duration: int):
         title = Tex(r"The Mathematics of Collisions", font_size=64)
 
         self.play(Write(title, run_time=0.8))
