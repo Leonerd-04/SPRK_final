@@ -12,11 +12,12 @@ class MainScene(VoiceoverScene):
 
     def construct(self):
         self.set_speech_service(GTTSService(transcription_model="base"))
-        # self.play_introduction_scene()
-        # self.play_pedestrian_graph_scene()
-        # self.play_roadside_tree_scene()
-        # self.play_site_visit_scene()
-        # self.play_conclusion_scene()
+        self.play_introduction_scene()
+        self.play_pedestrian_graph_scene()
+        self.play_roadside_tree_scene()
+        self.play_site_visit_scene()
+        self.play_conclusion_scene()
+        self.show_credits()
 
     def make_title(self, text: str, duration: float):
         title = Tex(text, font_size=64)
@@ -35,19 +36,35 @@ class MainScene(VoiceoverScene):
 
         fatalities.move_to([0, 0, 0])
 
-        self.play(
-            FadeIn(fatalities, shift=DOWN, lag_ratio=0.04),
-            run_time=2.5
-        )
+        with self.voiceover(
+                text="""In 2020, 1200 pedestrians died in car collisions in America, 
+                or three and a half people per day.
+                """
+        ):
+            self.play(
+                FadeIn(fatalities, shift=DOWN, lag_ratio=0.04),
+                run_time=2.5
+            )
 
-        self.wait(2)
+        with self.voiceover(
+            text="""It’s clear we need to make our streets safer for pedestrians to be able to use them effectively, 
+            especially when considering the future importance of walkable urban environments. 
+            Walking and transit-oriented design are not only better for the environment due to their lower emissions, 
+            but also allows those in society who can’t drive, like children, the elderly, 
+            and those with certain disabilities, to retain or gain independence."""
+        ):
+            pass
 
-        self.play(
-            FadeOut(fatalities, shift=DOWN, lag_ratio=0.04),
-            run_time=2.5
-        )
-
-        self.wait()
+        with self.voiceover(
+                text="""There are two main factors I want to talk about when it comes to 
+                increasing pedestrian safety. One is the frequency of car-pedestrian collisions. 
+                This is something we’ll want to decrease. 
+                Another, slightly more complex, is the speed of the cars on the road."""
+        ):
+            self.play(
+                FadeOut(fatalities, shift=DOWN, lag_ratio=0.04),
+                run_time=2.5
+            )
 
     def play_pedestrian_graph_scene(self):
 
@@ -57,7 +74,7 @@ class MainScene(VoiceoverScene):
 
         with self.voiceover(
             text="While it may be obvious to us that faster cars are more dangerous, it’s good to quantify their impact a bit more precisely."
-        ) as tracker:
+        ):
             pass
 
         #"One study found a ... the probability of death."
@@ -108,7 +125,7 @@ class MainScene(VoiceoverScene):
                 subcaption="""relating them with the logistical equation shown here, 
                 where v is the impact velocity of the collision in km/hr, 
                 and P(v) is the probability of the pedestrian dying."""
-        ) as tracker:
+        ):
             pass
 
         inp = ValueTracker(20)
@@ -135,10 +152,9 @@ class MainScene(VoiceoverScene):
         )
 
         self.play(
-            Create(point),
-            Create(vert_line),
-            Create(horz_line)
+            Create(point)
         )
+        self.add(horz_line, vert_line)
 
         with self.voiceover(
             text="""We can see that the severity of car collisions <bookmark mark='A'/> increases with impact speed, 
@@ -147,10 +163,10 @@ class MainScene(VoiceoverScene):
             subcaption="""We can see that the severity of car collisions increases with impact speed, 
 			however I also want to emphasize the difference between the impact speed 
 			(the speed at which the car hits the pedestrian) and the cruising speed of the car."""
-        ) as tracker:
+        ):
             self.wait_until_bookmark("A")
 
-            self.play(inp.animate.set_value(140), rate_func=rate_functions.ease_in_out_sine, run_time=2)
+            self.play(inp.animate.set_value(140), rate_func=rate_functions.ease_in_out_sine, run_time=4)
 
         self.play(
             Unwrite(prob_func_tex, run_time=1),
@@ -212,7 +228,7 @@ class MainScene(VoiceoverScene):
         with self.voiceover(
                 text="""We can visualize the collision with a position vs time graph, 
                 where the horizontal axis is the time t, and the vertical axis is the position x along the road."""
-        ) as tracker:
+        ):
             self.play(
                 Create(axes),
                 Create(car_plot),
@@ -225,14 +241,14 @@ class MainScene(VoiceoverScene):
             text="""The pink curve is the pedestrian and the yellow curve is a car 
             on a collision course with the pedestrian. The slope of a line represents the speed of the object, 
             so the pedestrian’s line is horizontal because they don’t move along the road all that much."""
-        ) as tracker:
+        ):
             pass
 
         #"If these two curves happen to intersect..."
         with self.voiceover(
                 text="""If these two curves happen to intersect, 
                 the car and the pedestrian have the same position and a collision happens."""
-        ) as tracker:
+        ):
             self.play(
                 velocity.animate.set_value(1.2),
                 run_time=0.7
@@ -262,7 +278,7 @@ class MainScene(VoiceoverScene):
                 subcaption="""Because human brains are slow and take time to react to events, 
                 there will be a little bit of time after seeing a pedestrian on the road 
                 where the driver won’t react, called the reaction time."""
-        ) as tracker:
+        ):
             self.wait_until_bookmark("A")
             self.play(
                 Create(line)
@@ -281,7 +297,7 @@ class MainScene(VoiceoverScene):
             subcaption="""We can see now that changing the cruising speed of the car 
             (the slope of the line at t = 0) changes the impact speed 
             (the slope of the line at the collision) by a lot."""
-        ) as tracker:
+        ):
             self.wait_until_bookmark("A")
             self.play(
                 velocity.animate.set_value(1.26),
@@ -296,7 +312,7 @@ class MainScene(VoiceoverScene):
                 subcaption="""Low enough cruising speeds allow the car to come to a full stop and avoid a collision, 
                 but as the cruising speed rises, the impact speed rises a lot faster until 
                 the driver can’t react to the collision anymore and doesn't hit the brakes before colliding."""
-        ) as tracker:
+        ):
             self.play(
                 velocity.animate.set_value(0.4),
                 run_time=1.2
@@ -325,7 +341,7 @@ class MainScene(VoiceoverScene):
             text="""We are now more aware of what goes into
             making car collisions dangerous, but how do we design
             streets to mitigate this risk?"""
-        ) as tracker:
+        ):
             pass
 
         self.show_road_with_trees()
@@ -341,22 +357,34 @@ class MainScene(VoiceoverScene):
         road_right = Line(start=[1.2, -5, 0], end=[1.2, 5, 0], color=WHITE)
         road_divide = DashedLine(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW, dash_length=0.5)
 
-        self.play(
-            Create(column_left, lag_ratio=0.15),
-            Create(column_right, lag_ratio=0.15),
-            Write(road_left),
-            Write(road_divide),
-            Write(road_right)
-        )
+        with self.voiceover(text="""One way is with trees on the side of the road."""):
+            self.play(
+                Create(column_left, lag_ratio=0.15),
+                Create(column_right, lag_ratio=0.15),
+                Write(road_left),
+                Write(road_divide),
+                Write(road_right)
+            )
 
-        self.wait()
+        with self.voiceover(
+            text="""One study found that having trees <bookmark mark='A'/>closer to 
+            the side of the road slowed drivers down by up to 10%.""",
+            subcaption="""One study found that having trees closer to 
+            the side of the road slowed drivers down by up to 10%."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                column_left.animate.shift(RIGHT * 0.6),
+                column_right.animate.shift(LEFT * 0.6)
+            )
 
-        self.play(
-            column_left.animate.shift(RIGHT * 0.6),
-            column_right.animate.shift(LEFT * 0.6)
-        )
-
-        self.wait()
+        with self.voiceover(
+            text = """They also found that having the trees closer leads to 
+            drivers driving further from the edge of the road. 
+            The authors theorized this to be due to the drivers’ risk assessment, 
+            however I also believe the trees’ apparent speed plays a factor. """
+        ):
+            pass
 
         self.play(
             Uncreate(column_left, lag_ratio=0.15),
@@ -386,32 +414,45 @@ class MainScene(VoiceoverScene):
             lambda this: this.set_points(Line(start=eye.get_center(), end=tree.get_center()).get_all_points())
         )
 
-        self.play(
-            Write(eye),
-            Create(tree, lag_ratio=0.1)
-        )
+        with self.voiceover(
+            text="""We can’t perceive the absolute distance we travel, only the <bookmark mark='A'/>change in angle 
+            of things in our field of view. This change decreases with <bookmark mark='B'/>distance to an observer, 
+            so the further the trees are from the road, the less they move across one’s field of vision,
+            and the lower the perceived speed. """,
+            subcaption="""We can’t perceive the absolute distance we travel, only the change in angle 
+            of things in our field of view. This change decreases with distance to an observer, 
+            so the further the trees are from the road, the less they move across one’s field of vision,
+            and the lower the perceived speed. """
+        ):
+            self.play(
+                Write(eye),
+                Create(tree, lag_ratio=0.1)
+            )
 
-        self.add(tree_eye_line)
+            self.add(tree_eye_line)
 
-        self.wait()
+            self.wait_until_bookmark("A")
+            self.play(
+                tree.animate.shift(UP * 2),
+                rate_func=wiggle,
+                run_time=2
+            )
 
-        self.play(
-            tree.animate.shift(UP * 2),
-            rate_func=wiggle,
-            run_time=2
-        )
+            self.wait_until_bookmark("B")
+            self.play(
+                tree.animate.shift(RIGHT * 3),
+                eye.animate.shift(LEFT * 3),
+                run_time=1.5
+            )
 
-        self.play(
-            tree.animate.shift(RIGHT * 3),
-            eye.animate.shift(LEFT * 3),
-            run_time=1.5
-        )
+            self.play(
+                tree.animate.shift(UP * 2),
+                rate_func=wiggle,
+                run_time=2
+            )
 
-        self.play(
-            tree.animate.shift(UP * 2),
-            rate_func=wiggle,
-            run_time=2
-        )
+        with self.voiceover(text="Either way, roadside trees seem to be something favorable for our streets."):
+            pass
 
         self.play(
             Unwrite(eye),
@@ -420,20 +461,22 @@ class MainScene(VoiceoverScene):
         )
 
     def show_traffic_lanes(self):
+        with self.voiceover(text="Another way to increase safety is to decrease traffic lane size, to a point anyways."):
+            pass
         lane_width = ValueTracker(3)
 
         def create_road(width: ValueTracker) -> VGroup:
             road = VGroup()
             center = Line(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW)
-            left = Line(start=[-width.get_value(), -5, 0], end=[-3 * width.get_value(), 5, 0])
+            left = Line(start=[-width.get_value(), -5, 0], end=[-width.get_value(), 5, 0])
             left.add_updater(
                 lambda this: this.set_points(
-                    Line(start=[-width.get_value(), -5, 0], end=[-3 * width.get_value(), 5, 0]).get_all_points())
+                    Line(start=[-width.get_value(), -5, 0], end=[-width.get_value(), 5, 0]).get_all_points())
             )
-            right = Line(start=[width.get_value(), -5, 0], end=[3 * width.get_value(), 5, 0])
+            right = Line(start=[width.get_value(), -5, 0], end=[width.get_value(), 5, 0])
             right.add_updater(
                 lambda this: this.set_points(
-                    Line(start=[width.get_value(), -5, 0], end=[3 * width.get_value(), 5, 0]).get_all_points())
+                    Line(start=[width.get_value(), -5, 0], end=[width.get_value(), 5, 0]).get_all_points())
             )
             road.add(center)
             road.add(left)
@@ -442,23 +485,43 @@ class MainScene(VoiceoverScene):
             return road
 
         road = create_road(lane_width)
-        lane_width_tracker = Variable(var=lane_width.get_value(), label="Lane Width", num_decimal_places=1).to_edge(UP)
+        lane_width_tracker = Variable(var=lane_width.get_value(), label="Lane Width", num_decimal_places=1).to_corner(corner=LEFT+UP)
         lane_width_tracker.add_updater(lambda this: this.tracker.set_value(lane_width.get_value()))
         self.add(road)
-
         self.play(
             Write(lane_width_tracker)
         )
 
+        with self.voiceover(
+                text="""Two studies both found some evidence that, for lanes wider than 3-3.6 meters, 
+                the <bookmark mark='A'/>wider the lane, the less safe it was for pedestrians. 
+                One study cited increasing collision frequency as the cause.""",
+                subcaption="""Two studies both found some evidence that, for lanes wider than 3-3.6 meters, 
+                the wider the lane, the less safe it was for pedestrians. 
+                One study cited increasing collision frequency as the cause."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                lane_width.animate.set_value(4),
+                run_time=1
+            )
+
+        with self.voiceover(
+            text="""I’m also inclined to believe that perceived speed is a factor here too, 
+            since a wider lane has lane dividers that move more slowly across a driver’s field of vision, 
+            by the principles mentioned with the trees."""
+        ):
+            pass
+
         self.play(
-            lane_width.animate.set_value(3.8),
-            run_time=1
+            Unwrite(road),
+            Unwrite(lane_width_tracker)
         )
 
-        self.wait()
-
-
     def play_site_visit_scene(self):
+        self.make_title(r"Designs in the Real World", 1.6)
+        with self.voiceover("It’s good to confirm predictions or results we make with a real world example."):
+            pass
         self.introduce_locations()
         self.show_satellite_images()
         pass
@@ -467,15 +530,24 @@ class MainScene(VoiceoverScene):
         ucm_image = ImageMobject(filename_or_array="images/UC Merced.jpeg", scale_to_resolution=720).shift(LEFT * 4)
         bak_image = ImageMobject(filename_or_array="images/Bakersfield.jpeg", scale_to_resolution=720).shift(RIGHT * 4)
 
-        self.play(
-            FadeIn(ucm_image, shift=DOWN)
-        )
+        with self.voiceover(
+            text="""For this, I chose two locations to compare, being my college, <bookmark mark='A'/>UC Merced, 
+            a pedestrian heavy place with little motor vehicle traffic, and some suburban streets 
+            in my hometown of <bookmark mark='B'/>Bakersfield, which is much more car-centric.""",
+            subcaption="""For this, I chose two locations to compare, being my college, UC Merced, 
+            a pedestrian heavy place with little motor vehicle traffic, and some suburban streets 
+            in my hometown of Bakersfield, which is much more car-centric."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                FadeIn(ucm_image, shift=DOWN)
+            )
 
-        self.wait()
+            self.wait_until_bookmark("B")
+            self.play(
+                FadeIn(bak_image, shift=DOWN)
+            )
 
-        self.play(
-            FadeIn(bak_image, shift=DOWN)
-        )
 
         self.play(
             FadeOut(bak_image, shift=DOWN),
@@ -485,15 +557,33 @@ class MainScene(VoiceoverScene):
         scholars_lane = ImageMobject(filename_or_array="images/Scholars Lane.JPG", scale_to_resolution=4320).shift(LEFT * 4)
         bak_street = ImageMobject(filename_or_array="images/Bakersfield Street.JPG", scale_to_resolution=4320).shift(RIGHT * 4)
 
-        self.play(
-            FadeIn(scholars_lane, shift=DOWN)
-        )
+        with self.voiceover(
+                text="""Visiting UC Merced’s Scholars’ Lane, a paved street spanning the length of the university, 
+                I saw <bookmark mark='A'/>rows of trees lining the edges of the streets, as well as thinner lanes. As a bonus, 
+                the trees lie between the sidewalk and the paved road, which acts like a buffer zone between 
+                cars and pedestrians.""",
+                subcaption="""Visiting UC Merced’s Scholars’ Lane, a paved street spanning the length of the university, 
+                I saw rows of trees lining the edges of the streets, as well as thinner lanes. As a bonus, 
+                the trees lie between the sidewalk and the paved road, which acts like a buffer zone between 
+                cars and pedestrians."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                FadeIn(scholars_lane, shift=DOWN)
+            )
 
-        self.wait()
-
-        self.play(
-            FadeIn(bak_street, shift=DOWN)
-        )
+        with self.voiceover(
+            text="""Looking at a residential street in Bakersfield, we can see <bookmark mark='A'/>much wider lanes, 
+            and while roadside trees are present they are much further away from the road’s center 
+            by virtue of the road itself simply being wider.""",
+            subcaption="""Looking at a residential street in Bakersfield, we can see much wider lanes, 
+            and while roadside trees are present they are much further away from the road’s center 
+            by virtue of the road itself simply being wider."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                FadeIn(bak_street, shift=DOWN)
+            )
 
         self.play(
             FadeOut(bak_street, shift=DOWN),
@@ -509,15 +599,33 @@ class MainScene(VoiceoverScene):
         bak_text = Tex("8.5 m").next_to(bak_image, direction=DOWN)
         bak = Group(bak_image, bak_text)
 
-        self.play(
-            FadeIn(ucm, shift=DOWN, lag_ratio=0.2)
-        )
+        with self.voiceover(
+            text="""Actually measuring the road’s width using satellite imaging yields a width of <bookmark mark='A'/>4.2 meters
+            for Scholars’ Lane, and <bookmark mark='B'/>8.5 meters for Bakersfield’s residential roads. While both are higher than 
+            the 3-3.6 meters recommended by the studies mentioned earlier, Scholar’s Lane still has a much closer 
+            width to the recommended than Bakersfield’s streets.""",
+            subcaption="""Actually measuring the road’s width using satellite imaging yields a width of 4.2 m
+            for Scholars’ Lane, and 8.5 m for Bakersfield’s residential roads. While both are higher than 
+            the 3-3.6 m recommended by the studies mentioned earlier, Scholar’s Lane still has a much closer 
+            width to the recommended than Bakersfield’s streets."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                FadeIn(ucm, shift=DOWN, lag_ratio=0.2)
+            )
+
+            self.wait_until_bookmark("B")
+            self.play(
+                FadeIn(bak, shift=DOWN, lag_ratio=0.2)
+            )
 
         self.play(
-            FadeIn(bak, shift=DOWN, lag_ratio=0.2)
+            FadeOut(ucm, shift=DOWN, lag_ratio=0.2),
+            FadeOut(bak, shift=DOWN, lag_ratio=0.2)
         )
 
     def play_conclusion_scene(self):
+        self.make_title(r"Conclusion", 1.6)
         road_left = Line(start=[-1.2, -5, 0], end=[-1.2, 5, 0], color=WHITE)
         road_right = Line(start=[1.2, -5, 0], end=[1.2, 5, 0], color=WHITE)
         road_divide = DashedLine(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW, dash_length=0.5)
@@ -525,18 +633,30 @@ class MainScene(VoiceoverScene):
         column_left = self.create_tree_column(-2.5)
         column_right = self.create_tree_column(2.5)
 
-        self.play(
-            Write(road_left),
-            Write(road_right),
-            Write(road_divide)
-        )
+        with self.voiceover(
+            text="""So, we can now conclude that <bookmark mark='A'/>lane width and <bookmark mark='B'/>roadside trees 
+            are important factors for improving pedestrian safety, by having considered both some studies 
+            into how these affect safety, and actual sites that exhibit these characteristics. 
+            These findings can be incorporated into building new streets, or remodeling old ones, to 
+            improve pedestrian safety and hopefully take a step towards a better, more walkable future.""",
+            subcaption="""So, we can now conclude that lane width and roadside trees 
+            are important factors for improving pedestrian safety, by having considered both some studies 
+            into how these affect safety, and actual sites that exhibit these characteristics. 
+            These findings can be incorporated into building new streets, or remodeling old ones, to 
+            improve pedestrian safety and hopefully take a step towards a better, more walkable future."""
+        ):
+            self.wait_until_bookmark("A")
+            self.play(
+                Write(road_left),
+                Write(road_right),
+                Write(road_divide)
+            )
 
-        self.wait()
-
-        self.play(
-            Create(column_left),
-            Create(column_right)
-        )
+            self.wait_until_bookmark("B")
+            self.play(
+                Create(column_left),
+                Create(column_right)
+            )
 
         self.wait()
 
@@ -549,6 +669,22 @@ class MainScene(VoiceoverScene):
         )
 
         self.wait()
+
+    def show_credits(self):
+        line1 = Tex("By Leonardo Gil Rojo").shift(UP)
+        line2 = Tex("Made using the Manim animation library").shift(DOWN)
+
+        self.play(
+            Write(line1)
+        )
+
+        self.wait(4)
+
+        self.play(
+            Write(line2)
+        )
+
+        self.wait(5)
 
     def create_tree_column(self, position: float) -> VGroup:
         column = VGroup()
