@@ -12,17 +12,42 @@ class MainScene(VoiceoverScene):
 
     def construct(self):
         self.set_speech_service(GTTSService(transcription_model="base"))
-        self.play_pedestrian_graph_scene()
+        # self.play_introduction_scene()
+        # self.play_pedestrian_graph_scene()
+        # self.play_roadside_tree_scene()
+        # self.play_site_visit_scene()
+        # self.play_conclusion_scene()
 
-
-    def make_title(self, text: str, duration: int):
+    def make_title(self, text: str, duration: float):
         title = Tex(text, font_size=64)
 
         self.play(Write(title, run_time=0.8))
         self.wait(duration)
         self.play(Unwrite(title, run_time=0.8))
 
+    def play_introduction_scene(self):
+        fatalities = VGroup()
+        initial = Circle(0.07, stroke_opacity=0, fill_opacity=1, fill_color="#D80D8E")
 
+        for i in range(30):
+            for j in range(40):
+                fatalities.add(initial.copy().shift(RIGHT * j / 4 + DOWN * i / 4))
+
+        fatalities.move_to([0, 0, 0])
+
+        self.play(
+            FadeIn(fatalities, shift=DOWN, lag_ratio=0.04),
+            run_time=2.5
+        )
+
+        self.wait(2)
+
+        self.play(
+            FadeOut(fatalities, shift=DOWN, lag_ratio=0.04),
+            run_time=2.5
+        )
+
+        self.wait()
 
     def play_pedestrian_graph_scene(self):
 
@@ -43,7 +68,6 @@ class MainScene(VoiceoverScene):
         self.pos_vs_time()
 
         self.wait(2.5)
-
 
     def display_prob_func(self):
         line_color = Color()
@@ -295,4 +319,258 @@ class MainScene(VoiceoverScene):
         )
 
     def play_roadside_tree_scene(self):
+        self.make_title(r"Designing Streets for Safety", 1.6)
+
+        with self.voiceover(
+            text="""We are now more aware of what goes into
+            making car collisions dangerous, but how do we design
+            streets to mitigate this risk?"""
+        ) as tracker:
+            pass
+
+        self.show_road_with_trees()
+
+        self.show_traffic_lanes()
+
+    def show_road_with_trees(self):
+
+        column_left = self.create_tree_column(-2.5)
+        column_right = self.create_tree_column(2.5)
+
+        road_left = Line(start=[-1.2, -5, 0], end=[-1.2, 5, 0], color=WHITE)
+        road_right = Line(start=[1.2, -5, 0], end=[1.2, 5, 0], color=WHITE)
+        road_divide = DashedLine(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW, dash_length=0.5)
+
+        self.play(
+            Create(column_left, lag_ratio=0.15),
+            Create(column_right, lag_ratio=0.15),
+            Write(road_left),
+            Write(road_divide),
+            Write(road_right)
+        )
+
+        self.wait()
+
+        self.play(
+            column_left.animate.shift(RIGHT * 0.6),
+            column_right.animate.shift(LEFT * 0.6)
+        )
+
+        self.wait()
+
+        self.play(
+            Uncreate(column_left, lag_ratio=0.15),
+            Uncreate(column_right, lag_ratio=0.15),
+            Unwrite(road_left),
+            Unwrite(road_divide),
+            Unwrite(road_right)
+        )
+
+        # Lens shape for the eye's outline
+        # Sclera is the white part of the eye
+        sclera = Intersection(
+            Circle(0.8).shift(UP / 2),
+            Circle(0.8).shift(DOWN / 2)
+        ).shift(LEFT * 2)
+
+        pupil = Circle(
+            radius=0.26,
+            stroke_color="#1AB1E0"
+        ).shift(LEFT * 2)
+
+        eye = VGroup(sclera, pupil)
+        tree = self.create_tree().shift(2 * RIGHT).scale(2)
+
+        tree_eye_line = Line(start=eye.get_center(), end=tree.get_center(), stroke_width=2, color="#E97010")
+        tree_eye_line.add_updater(
+            lambda this: this.set_points(Line(start=eye.get_center(), end=tree.get_center()).get_all_points())
+        )
+
+        self.play(
+            Write(eye),
+            Create(tree, lag_ratio=0.1)
+        )
+
+        self.add(tree_eye_line)
+
+        self.wait()
+
+        self.play(
+            tree.animate.shift(UP * 2),
+            rate_func=wiggle,
+            run_time=2
+        )
+
+        self.play(
+            tree.animate.shift(RIGHT * 3),
+            eye.animate.shift(LEFT * 3),
+            run_time=1.5
+        )
+
+        self.play(
+            tree.animate.shift(UP * 2),
+            rate_func=wiggle,
+            run_time=2
+        )
+
+        self.play(
+            Unwrite(eye),
+            Uncreate(tree, lag_ratio=0.1),
+            Unwrite(tree_eye_line)
+        )
+
+    def show_traffic_lanes(self):
+        lane_width = ValueTracker(3)
+
+        def create_road(width: ValueTracker) -> VGroup:
+            road = VGroup()
+            center = Line(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW)
+            left = Line(start=[-width.get_value(), -5, 0], end=[-3 * width.get_value(), 5, 0])
+            left.add_updater(
+                lambda this: this.set_points(
+                    Line(start=[-width.get_value(), -5, 0], end=[-3 * width.get_value(), 5, 0]).get_all_points())
+            )
+            right = Line(start=[width.get_value(), -5, 0], end=[3 * width.get_value(), 5, 0])
+            right.add_updater(
+                lambda this: this.set_points(
+                    Line(start=[width.get_value(), -5, 0], end=[3 * width.get_value(), 5, 0]).get_all_points())
+            )
+            road.add(center)
+            road.add(left)
+            road.add(right)
+
+            return road
+
+        road = create_road(lane_width)
+        lane_width_tracker = Variable(var=lane_width.get_value(), label="Lane Width", num_decimal_places=1).to_edge(UP)
+        lane_width_tracker.add_updater(lambda this: this.tracker.set_value(lane_width.get_value()))
+        self.add(road)
+
+        self.play(
+            Write(lane_width_tracker)
+        )
+
+        self.play(
+            lane_width.animate.set_value(3.8),
+            run_time=1
+        )
+
+        self.wait()
+
+
+    def play_site_visit_scene(self):
+        self.introduce_locations()
+        self.show_satellite_images()
         pass
+
+    def introduce_locations(self):
+        ucm_image = ImageMobject(filename_or_array="images/UC Merced.jpeg", scale_to_resolution=720).shift(LEFT * 4)
+        bak_image = ImageMobject(filename_or_array="images/Bakersfield.jpeg", scale_to_resolution=720).shift(RIGHT * 4)
+
+        self.play(
+            FadeIn(ucm_image, shift=DOWN)
+        )
+
+        self.wait()
+
+        self.play(
+            FadeIn(bak_image, shift=DOWN)
+        )
+
+        self.play(
+            FadeOut(bak_image, shift=DOWN),
+            FadeOut(ucm_image, shift=DOWN)
+        )
+
+        scholars_lane = ImageMobject(filename_or_array="images/Scholars Lane.JPG", scale_to_resolution=4320).shift(LEFT * 4)
+        bak_street = ImageMobject(filename_or_array="images/Bakersfield Street.JPG", scale_to_resolution=4320).shift(RIGHT * 4)
+
+        self.play(
+            FadeIn(scholars_lane, shift=DOWN)
+        )
+
+        self.wait()
+
+        self.play(
+            FadeIn(bak_street, shift=DOWN)
+        )
+
+        self.play(
+            FadeOut(bak_street, shift=DOWN),
+            FadeOut(scholars_lane, shift=DOWN)
+        )
+
+    def show_satellite_images(self):
+        ucm_image = ImageMobject(filename_or_array="images/Scholars Lane Satellite.png", scale_to_resolution=1080).shift(LEFT * 4)
+        ucm_text = Tex("4.2 m").next_to(ucm_image, direction=DOWN)
+        ucm = Group(ucm_image, ucm_text)
+
+        bak_image = ImageMobject(filename_or_array="images/Bakersfield Satellite.png", scale_to_resolution=1080).shift(RIGHT * 4)
+        bak_text = Tex("8.5 m").next_to(bak_image, direction=DOWN)
+        bak = Group(bak_image, bak_text)
+
+        self.play(
+            FadeIn(ucm, shift=DOWN, lag_ratio=0.2)
+        )
+
+        self.play(
+            FadeIn(bak, shift=DOWN, lag_ratio=0.2)
+        )
+
+    def play_conclusion_scene(self):
+        road_left = Line(start=[-1.2, -5, 0], end=[-1.2, 5, 0], color=WHITE)
+        road_right = Line(start=[1.2, -5, 0], end=[1.2, 5, 0], color=WHITE)
+        road_divide = DashedLine(start=[0, -5, 0], end=[0, 5, 0], color=YELLOW, dash_length=0.5)
+
+        column_left = self.create_tree_column(-2.5)
+        column_right = self.create_tree_column(2.5)
+
+        self.play(
+            Write(road_left),
+            Write(road_right),
+            Write(road_divide)
+        )
+
+        self.wait()
+
+        self.play(
+            Create(column_left),
+            Create(column_right)
+        )
+
+        self.wait()
+
+        self.play(
+            Unwrite(road_left),
+            Unwrite(road_right),
+            Unwrite(road_divide),
+            Uncreate(column_left),
+            Uncreate(column_right)
+        )
+
+        self.wait()
+
+    def create_tree_column(self, position: float) -> VGroup:
+        column = VGroup()
+        tree = self.create_tree()
+
+        tree.move_to(point_or_mobject=[position, -5, 0])
+        column.add(tree)
+
+        # Copies the tree shape to make a whole column
+        for i in range(10):
+            column.add(tree.copy().shift(i * UP))
+
+        return column
+
+    def create_tree(self) -> VGroup:
+        tree = VGroup()
+        shrub_1 = Ellipse(0.45, 0.195, fill_color="#57A275", stroke_opacity=0, fill_opacity=1)
+
+        tree.add(shrub_1)
+
+        # Rotating the ellipse discretely produces a shrub-like shape
+        for i in range(7):
+            tree.add(shrub_1.copy().rotate(i * PI / 4))
+
+        return tree
